@@ -1,7 +1,9 @@
 package fr.esgi.al.funprog
 
-import play.api.libs.json._
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 final case class DonneesIncorectesException(message: String) extends Exception(message)
 
@@ -142,7 +144,10 @@ object LawnMower {
 }
 
 object Main extends App {
-  val input = scala.io.Source.fromFile("input.txt").getLines().toList
+  val conf: Config = ConfigFactory.load()
+
+  val inputFileName: String = conf.getString("application.input-file")
+  val input = scala.io.Source.fromFile(inputFileName).getLines().toList
   val lawn = Lawn.load(input.take(1))
 
   val lawnMowers = input.drop(1).grouped(2).map(input => LawnMower.load(lawn, input)).toList
