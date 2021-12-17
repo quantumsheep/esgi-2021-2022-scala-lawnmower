@@ -81,7 +81,7 @@ final case class LawnMower(lawn: Lawn, start: Orientation, current: Orientation,
 
   private def __run(instructions: List[Char]): LawnMower = instructions match {
     case Nil          => this
-    case head :: rest => action(head).__run(rest)
+    case head :: tail => action(head).__run(tail)
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
@@ -147,23 +147,39 @@ object LawnMower {
   }
 }
 
+object LawnMowerSystem {
+  def toJson(lawn: Lawn, lawnMowers: List[LawnMower]) = Json.obj(
+    "limite"    -> lawn,
+    "tondeuses" -> lawnMowers
+  )
+
+  def toCsv(lawnMowers: List[LawnMower]) =
+    "numéro;début_x;début_y;début_direction;fin_x;fin_y;fin_direction;instructions" + toCsvLine(lawnMowers, 1)
+
+  private def toCsvLine(lawnMowers: List[LawnMower], id: Int): String = lawnMowers match {
+    case Nil => ""
+    case head :: tail =>
+      s"\n${id.toString};${head.start.coordinates.x.toString};${head.start.coordinates.y.toString};${head.start.direction.toString};${head.current.coordinates.x.toString};${head.current.coordinates.y.toString};${head.current.direction.toString};${head.instructions.mkString}" + toCsvLine(
+        tail,
+        id + 1
+      )
+  }
+}
+
 object Main extends App {
   val conf: Config = ConfigFactory.load()
 
   val inputFileName: String = conf.getString("application.input-file")
   val input = scala.io.Source.fromFile(inputFileName).getLines().toList
-  val lawn = Lawn.load(input.take(1))
 
+  val lawn = Lawn.load(input.take(1))
   val lawnMowers = input.drop(1).grouped(2).map(input => LawnMower.load(lawn, input)).toList
 
-  val jsonOutput = Json
-    .obj(
-      "lawn"   -> lawn,
-      "mowers" -> lawnMowers
-    )
-    .toString()
+  val outputJsonFileName: String = conf.getString("application.output-json-file")
+  val outputJsonPath = Files.write(Paths.get(outputJsonFileName), LawnMowerSystem.toJson(lawn, lawnMowers).toString.getBytes(StandardCharsets.UTF_8))
+  println(s"JSON output written to ${outputJsonPath.toString()}")
 
-  val outputJSONFileName: String = conf.getString("application.output-json-file")
-  val path = Files.write(Paths.get(outputJSONFileName), jsonOutput.getBytes(StandardCharsets.UTF_8))
-  println(s"JSON output written to ${path.toString()}")
+  val outputCsvFileName: String = conf.getString("application.output-csv-file")
+  val outputCsvPath = Files.write(Paths.get(outputCsvFileName), LawnMowerSystem.toCsv(lawnMowers).toString.getBytes(StandardCharsets.UTF_8))
+  println(s"JSON output written to ${outputCsvPath.toString()}")
 }
