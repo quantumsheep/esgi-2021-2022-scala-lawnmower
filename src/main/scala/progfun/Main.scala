@@ -5,6 +5,10 @@ import com.typesafe.config.ConfigFactory
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+
 final case class DonneesIncorectesException(message: String) extends Exception(message)
 
 final case class Lawn(limitX: Int, limitY: Int)
@@ -152,10 +156,14 @@ object Main extends App {
 
   val lawnMowers = input.drop(1).grouped(2).map(input => LawnMower.load(lawn, input)).toList
 
-  println(
-    Json.obj(
-      "limite"    -> lawn,
-      "tondeuses" -> lawnMowers
+  val jsonOutput = Json
+    .obj(
+      "lawn"   -> lawn,
+      "mowers" -> lawnMowers
     )
-  )
+    .toString()
+
+  val outputJSONFileName: String = conf.getString("application.output-json-file")
+  val path = Files.write(Paths.get(outputJSONFileName), jsonOutput.getBytes(StandardCharsets.UTF_8))
+  println(s"JSON output written to ${path.toString()}")
 }
