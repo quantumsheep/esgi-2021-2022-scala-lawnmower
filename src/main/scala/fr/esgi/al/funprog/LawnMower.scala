@@ -4,10 +4,10 @@ import fr.esgi.al.funprog.exceptions._
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-final case class LawnMower(lawn: Lawn, start: Orientation, current: Orientation, instructions: List[Char]) {
+final case class LawnMower(lawn: Lawn, start: Orientation, instructions: List[Char], current: Orientation) {
   def run() = current match {
     case _ if current == start => __run(instructions)
-    case _                     => LawnMower(lawn, start, start, instructions).__run(instructions)
+    case _                     => LawnMower(lawn, start, instructions).__run(instructions)
   }
 
   private def __run(instructions: List[Char]): LawnMower = instructions match {
@@ -46,12 +46,15 @@ final case class LawnMower(lawn: Lawn, start: Orientation, current: Orientation,
     case _   => throw new DonneesIncorectesException("Invalid lawn mower direction")
   }
 
-  private def rotate(direction: Char) = LawnMower(lawn, start, current.rotate(direction), instructions)
+  private def rotate(direction: Char) = LawnMower(lawn, start, instructions, current.rotate(direction))
 
-  private def move(x: Int, y: Int) = LawnMower(lawn, start, current.move(Coordinates(x, y)), instructions)
+  private def move(x: Int, y: Int) = LawnMower(lawn, start, instructions, current.move(Coordinates(x, y)))
 }
 
 object LawnMower {
+  def apply(lawn: Lawn, start: Orientation, instructions: List[Char]): LawnMower = LawnMower(lawn, start, instructions, start)
+  def apply(lawn: Lawn, start: Orientation, instructions: String): LawnMower = LawnMower(lawn, start, instructions.toList, start)
+
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def load(lawn: Lawn, input: List[String]): LawnMower = input match {
     case line :: actions :: _ =>
@@ -59,7 +62,7 @@ object LawnMower {
         case x :: y :: direction :: Nil =>
           try {
             val orientation = Orientation(Coordinates(x.toInt, y.toInt), direction(0))
-            LawnMower(lawn, orientation, orientation, actions.toList).run()
+            LawnMower(lawn, orientation, actions).run()
           } catch {
             case _: NumberFormatException => throw new DonneesIncorectesException("Lawn mower position is not a number")
           }
