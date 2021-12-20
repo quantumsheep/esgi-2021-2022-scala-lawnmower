@@ -4,7 +4,6 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -164,6 +163,50 @@ object LawnMowerSystem {
         id + 1
       )
   }
+
+  def toYaml(lawn: Lawn, lawnMowers: List[LawnMower]) = fromJsObjectToYaml(toJson(lawn, lawnMowers))
+
+  def fromJsObjectToYaml(json: JsObject) = __fromJsObjectToYaml(json, 0);
+
+  private def __fromJsObjectToYaml(json: JsObject, indent: Int): String =
+    json.fields.toList
+      .map {
+        case (key, value) => s"${__indent(indent)}$key: ${__fromJsValueToYaml(value, indent + 2, false)}"
+        case _            => "???"
+      }
+      .mkString("\n")
+
+  private def __fromJsObjectToYamlAfterArray(json: JsObject, indent: Int): String = json.fields.toList match {
+    case Nil                 => ""
+    case (key, value) :: Nil => s"$key: ${__fromJsValueToYaml(value, indent + 2, false)}"
+    case (key, value) :: tail =>
+      s"$key: ${__fromJsValueToYaml(value, indent + 2, false)}\n" + tail
+        .map {
+          case (key, value) => s"${__indent(indent)}$key: ${__fromJsValueToYaml(value, indent + 2, false)}"
+          case _            => "???"
+        }
+        .mkString("\n")
+  }
+
+  private def __fromJsValueToYaml(value: JsValue, indent: Int, isArray: Boolean): String = value match {
+    case JsString(value)  => s"${value}"
+    case JsNumber(value)  => s"${value.toString}"
+    case JsBoolean(value) => s"${value.toString}"
+    case JsArray(value) =>
+      s"\n${value
+        .map { value =>
+          s"${__indent(indent)}- ${__fromJsValueToYaml(value, indent + 2, true)}"
+        }
+        .mkString("\n")}"
+    case value: JsObject =>
+      isArray match {
+        case true => __fromJsObjectToYamlAfterArray(value, indent)
+        case _    => s"\n${__fromJsObjectToYaml(value, indent)}"
+      }
+    case _ => "???"
+  }
+
+  private def __indent(indent: Int) = "".padTo(indent, ' ').mkString("")
 }
 
 object Main extends App {
@@ -181,5 +224,9 @@ object Main extends App {
 
   val outputCsvFileName: String = conf.getString("application.output-csv-file")
   val outputCsvPath = Files.write(Paths.get(outputCsvFileName), LawnMowerSystem.toCsv(lawnMowers).toString.getBytes(StandardCharsets.UTF_8))
-  println(s"JSON output written to ${outputCsvPath.toString()}")
+  println(s"CSV output written to ${outputCsvPath.toString()}")
+
+  val outputYamlFileName: String = conf.getString("application.output-yaml-file")
+  val outputYamlPath = Files.write(Paths.get(outputYamlFileName), LawnMowerSystem.toYaml(lawn, lawnMowers).toString.getBytes(StandardCharsets.UTF_8))
+  println(s"Yaml output written to ${outputYamlPath.toString()}")
 }
