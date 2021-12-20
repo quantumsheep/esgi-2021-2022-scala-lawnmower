@@ -1,7 +1,7 @@
 package fr.esgi.al.funprog
 
-import org.scalatest.funspec.AnyFunSpec
 import fr.esgi.al.funprog.exceptions.DonneesIncorectesException
+import org.scalatest.funspec.AnyFunSpec
 
 class LawnSpec extends AnyFunSpec {
   describe("A Lawn") {
