@@ -18,10 +18,3 @@ jobs:
       - uses: actions/checkout@v2
       - name: Check formatting
         run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheck
-
-  compilation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Did it compile?
-        run: sbt compile
