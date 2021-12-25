@@ -29,5 +29,11 @@ class LawnSpec extends AnyFunSpec {
         Lawn.load(List("5 3", "a"))
       }
     }
+
+    it("should not load from List()") {
+      assertThrows[DonneesIncorectesException] {
+        Lawn.load(List())
+      }
+    }
   }
 }
