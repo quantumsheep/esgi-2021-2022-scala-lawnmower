@@ -20,7 +20,7 @@ object LawnMowerConverter {
       )
   }
 
-  def toYaml(lawn: Lawn, lawnMowers: List[LawnMower]) = fromJsObjectToYaml(toJson(lawn, lawnMowers))
+  def toYaml(lawn: Lawn, lawnMowers: List[LawnMower]) = fromJsObjectToYaml(toJson(lawn, lawnMowers)).split("\n").map(Utils.trimRight).mkString("\n")
 
   def fromJsObjectToYaml(json: JsObject) = __fromJsObjectToYaml(json, 0);
 
