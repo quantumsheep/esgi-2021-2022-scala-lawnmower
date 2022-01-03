@@ -10,7 +10,19 @@ final case class Orientation(coordinates: Coordinates, direction: Char) {
     case _                     => throw new DonneesIncorectesException("Invalid lawn mower orientation")
   }
 
-  def rotate(newDirection: Char): Orientation = Orientation(coordinates, newDirection)
+  def rotateRight(): Orientation = direction match {
+    case 'N' => Orientation(coordinates, 'E')
+    case 'E' => Orientation(coordinates, 'S')
+    case 'S' => Orientation(coordinates, 'W')
+    case 'W' => Orientation(coordinates, 'N')
+  }
+
+  def rotateLeft(): Orientation = direction match {
+    case 'N' => Orientation(coordinates, 'W')
+    case 'W' => Orientation(coordinates, 'S')
+    case 'S' => Orientation(coordinates, 'E')
+    case 'E' => Orientation(coordinates, 'N')
+  }
 
   def move(newCoordinates: Coordinates): Orientation = Orientation(newCoordinates, direction)
 }

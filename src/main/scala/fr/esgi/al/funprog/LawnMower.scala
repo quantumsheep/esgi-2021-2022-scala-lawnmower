@@ -23,19 +23,9 @@ final case class LawnMower(lawn: Lawn, start: Orientation, instructions: List[Ch
     case _   => throw new DonneesIncorectesException("Invalid lawn mower action")
   }
 
-  def right(): LawnMower = current.direction match {
-    case 'N' => rotate('E')
-    case 'E' => rotate('S')
-    case 'S' => rotate('W')
-    case 'W' => rotate('N')
-  }
+  def right() = LawnMower(lawn, start, instructions, current.rotateRight())
 
-  def left(): LawnMower = current.direction match {
-    case 'N' => rotate('W')
-    case 'W' => rotate('S')
-    case 'S' => rotate('E')
-    case 'E' => rotate('N')
-  }
+  def left() = LawnMower(lawn, start, instructions, current.rotateLeft())
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def forward(): LawnMower = current.direction match {
@@ -45,8 +35,6 @@ final case class LawnMower(lawn: Lawn, start: Orientation, instructions: List[Ch
     case 'W' => move(math.max(current.coordinates.x - 1, 0), current.coordinates.y)
     case _   => throw new DonneesIncorectesException("Invalid lawn mower direction")
   }
-
-  private def rotate(direction: Char) = LawnMower(lawn, start, instructions, current.rotate(direction))
 
   private def move(x: Int, y: Int) = LawnMower(lawn, start, instructions, current.move(Coordinates(x, y)))
 }
